@@ -11,9 +11,10 @@ const whitelist = [
   "http://localhost:5173"
 ];
 
+
 const corsOptions = {
   origin: function (origin, callback) {
-    
+  
     if (!origin) return callback(null, true);
     if (whitelist.indexOf(origin) !== -1) {
       callback(null, true);
@@ -25,31 +26,21 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   credentials: true,
   preflightContinue: false, 
+  optionsSuccessStatus: 204
 };
 
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); 
+
+app.options("*", cors(corsOptions));
 
 // Middlewares
 app.use(express.json());
 
-
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin && whitelist.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,PUT,PATCH,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  }
-  next();
-});
-
-
+// Custom Middlewares
 const { authenticateUser } = require("./Middleware/UserAuthenticationMiddleware");
 
-
+// Routers
 const JobRouter = require("./Router/JobRouter");
 const UserRouter = require("./Router/UserRouter");
 const AuthRouter = require("./Router/AuthRouter");
@@ -57,15 +48,12 @@ const AdminRouter = require("./Router/AdminRouter");
 const ApplicationRouter = require("./Router/ApplicationRouter");
 
 
+// Connecting routes
 app.use("/api/v1/Jobs", authenticateUser, JobRouter);
 app.use("/api/v1/Users", authenticateUser, UserRouter);
-app.use("/api/v1/auth", AuthRouter); 
+app.use("/api/v1/Auth", AuthRouter);
 app.use("/api/v1/Admin", authenticateUser, AdminRouter);
 app.use("/api/v1/Application", authenticateUser, ApplicationRouter);
 
-// 404 handler (keeps CORS headers)
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not found' });
-});
-
 module.exports = app;
+
